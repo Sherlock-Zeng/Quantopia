@@ -128,12 +128,12 @@ def FactorGroup(factor,split_method='average',split_num=5,industry_factor=None,l
 	return final_data
 
 
-def FactorPurify(factor, elifactor):
+def FactorNeutralize(factor, elifactor):
     # elifactor = [pd.DataFrame(),pd.DataFrame()...]
     '''
     对因子进行中性化处理。
     :param factor: 需要被中性化的因子, pd.DataFrame, 
-	:param elifactor: 数值型因子列表, 每个元素为pd.DataFrame,
+    :param elifactor: 数值型因子列表, 每个元素为pd.DataFrame,
     :return: pd.DataFrame, 中性化后的因子
     '''
     new_elifactor = []

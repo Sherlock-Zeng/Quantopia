@@ -1,4 +1,3 @@
-from click import group
 import pandas as pd
 import numpy as np
 from statsmodels.api import OLS,add_constant
@@ -47,7 +46,7 @@ def FactorIC(factor1,factor2,min_valid_num=0):
 def FactorGroup(factor,split_method='average',split_num=5,industry_factor=None,limit_df=None):
 	'''
 	将因子进行分类,按照行分类。
-	:param factor:要分类的因子,或者打分
+	:param factor:要分类或者打分的因子数据, pd.DataFrame
 	:param split_method:默认为等比例分组,'average',还可以有'largest','smallest','largest_ratio','smallest_ratio'
 	:param split_num:若split_method=='average',则等分split_num组,若为'largest',则最大n个,若'smallest',则最小n个,若largest_ratio,则最大百分比,若smallest_ratio,则最小百分比
 	:param industry_factor(pd.DataFrame or None):行业因子
@@ -128,12 +127,12 @@ def FactorGroup(factor,split_method='average',split_num=5,industry_factor=None,l
 	return final_data
 
 
-def FactorNeutralize(factor, elifactor):
+def FactorPurify(factor, elifactor):
     # elifactor = [pd.DataFrame(),pd.DataFrame()...]
     '''
     对因子进行中性化处理。
     :param factor: 需要被中性化的因子, pd.DataFrame, 
-    :param elifactor: 数值型因子列表, 每个元素为pd.DataFrame,
+	:param elifactor: 数值型因子列表, 每个元素为pd.DataFrame,
     :return: pd.DataFrame, 中性化后的因子
     '''
     new_elifactor = []
@@ -183,7 +182,7 @@ def IndustryNeutralize(factor, industry_data):
 	return neutralized_factor
 
 
-def simple_factor_test(factor, ret_close):
+def simple_factor_test(factor, ret_close, SplitNum):
     '''
     因子回测数据计算,计算因子的IC和RankIC,以及分组收益率
     :param factor: pd.DataFrame, 因子数据
@@ -192,7 +191,7 @@ def simple_factor_test(factor, ret_close):
 	'''
     this_ret_data = ret_close.shift(-1)
     ic,rankic = FactorIC(factor,this_ret_data) 
-    factor_group = FactorGroup(factor)
+    factor_group = FactorGroup(factor, split_num=SplitNum)
     condata = pd.concat([factor_group.unstack(),this_ret_data.unstack()],axis=1).dropna().reset_index()
     condata.columns =['stockcode','date','group_id','ret']
     group_ret = condata.groupby(['date','group_id'])['ret'].mean().unstack()
@@ -310,7 +309,7 @@ def plot_factor_performance(factor, ret_close, ic, rankic, group_ret):
 	# 转换收益率为累积收益率
 	cumulative_returns = (1 + group_ret).cumprod() - 1
 
-	# 绘制累积收益率
+	# 绘制分层累积收益率图
 	plt.figure(figsize=(14, 7))
 	for column in cumulative_returns.columns:
 		plt.plot(cumulative_returns.index, cumulative_returns[column], label=f'Group {column}')
@@ -320,6 +319,20 @@ def plot_factor_performance(factor, ret_close, ic, rankic, group_ret):
 	plt.ylabel('Cumulative Returns')
 	plt.legend()
 	plt.grid(True)
+	plt.show()
+ 
+	# 计算各分组年化超额收益
+	annual_excess_returns = group_ret.mean() * 252
+
+	# 绘制年化超额收益柱状图
+	plt.figure(figsize=(10, 6))
+	annual_excess_returns.plot(kind='bar', color='skyblue', edgecolor='black')
+	plt.title('Annualized Excess Returns by Group')
+	plt.xlabel('Group')
+	plt.ylabel('Annualized Excess Returns')
+	plt.axhline(0, color='red', linestyle='dashed', linewidth=1)
+	plt.grid(axis='y', alpha=0.3)
+	plt.tight_layout()
 	plt.show()
 
 	# 计算多空组合收益率 
@@ -364,11 +377,22 @@ def plot_factor_performance(factor, ret_close, ic, rankic, group_ret):
 	plt.show()
 
 
-	# 多空组合年化收益率、波动率、夏普比率和最大回撤
-	annual_return = long_short_returns.mean() * 252
-	annual_vol = long_short_returns.std() * np.sqrt(252)
-	sharpe = annual_return / annual_vol
+	# 多空组合表现数据
+	R_f = 0.02 
+	cumulative_net = (1 + long_short_returns).prod()
+	total_days = (long_short_returns.index[-1] - long_short_returns.index[0]).days
+	days_in_year = 250
+	annual_return = cumulative_net**(days_in_year / total_days) - 1
+ 
+	annual_vol = long_short_returns.std() * np.sqrt(days_in_year)
+ 
+	sharpe = (annual_return-R_f) / annual_vol
+ 
 	max_drawdown = (cumulative_long_short.cummax() - cumulative_long_short).max()
+ 
+	calmar_ratio = annual_return / max_drawdown if max_drawdown != 0 else np.nan
+ 
+	sortino_ratio = (annual_return - R_f) / long_short_returns[long_short_returns < 0].std() if long_short_returns[long_short_returns < 0].std() != 0 else np.nan
 
 	print('--'*30)
 	print("多空组合表现数据")
@@ -376,4 +400,7 @@ def plot_factor_performance(factor, ret_close, ic, rankic, group_ret):
 	print(f"Annual Volatility: {annual_vol:.2%}")
 	print(f"Sharpe Ratio: {sharpe:.2f}")
 	print(f"Max Drawdown: {max_drawdown:.2%}")
+	print(f'Calmar Ratio: {calmar_ratio:.2f}')
+	print(f'Sortino Ratio: {sortino_ratio:.2f}')
+
 	print('--'*30)

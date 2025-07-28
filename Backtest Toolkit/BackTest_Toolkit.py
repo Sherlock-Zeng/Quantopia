@@ -1,5 +1,5 @@
 # This Python backtesting framework includes multiple factor analysis functions and visualization tools, and can be used for both daily and monthly factor evaluation.
-## This is an open-ended framework, upon which improvements and customized modifications can be made.
+## This is an open-ended framework, upon which improvements and customized modifications should be made.
 ## This code is currently under continuous maintenance and update...
 
 

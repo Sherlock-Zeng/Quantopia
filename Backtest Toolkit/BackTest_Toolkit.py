@@ -153,7 +153,7 @@ def FactorPurify(factor, elifactor):
 
 def IndustryNeutralize(factor, industry_data):
 	'''
-    对因子进行行业中性化处理。
+    	对因子进行行业中性化处理。
 	:param factor: 需要被中性化的因子, pd.DataFrame,
 	:param industry_data: 行业数据, pd.DataFrame, 包含'Code'和'Industry'列
 	:return: pd.DataFrame, 中性化后的因子
@@ -233,7 +233,7 @@ def factor_statistics(ic, rankic, group_ret):
 
 def plot_factor_performance(factor, ret_close, ic, rankic, group_ret):
 	'''
-    绘制因子表现图, 包括因子值与收益率的散点图、IC和Rank IC的年度统计、累积收益率图、多空组合收益率图等
+    	绘制因子表现图, 包括因子值与收益率的散点图、IC和Rank IC的年度统计、累积收益率图、多空组合收益率图等
 	:param factor: pd.DataFrame, 因子数据
 	:param ret_close: pd.DataFrame, 收盘收益率数据
 	:param ic: pd.Series, 因子IC

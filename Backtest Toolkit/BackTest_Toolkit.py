@@ -1,3 +1,8 @@
+# This Python backtesting framework includes multiple factor analysis functions and visualization tools, and can be used for both daily and monthly factor evaluation.
+## This is an open-ended framework, upon which improvements and customized modifications can be made.
+## This code is currently under continuous maintenance and update...
+
+
 import pandas as pd
 import numpy as np
 from statsmodels.api import OLS,add_constant
@@ -402,5 +407,4 @@ def plot_factor_performance(factor, ret_close, ic, rankic, group_ret):
 	print(f"Max Drawdown: {max_drawdown:.2%}")
 	print(f'Calmar Ratio: {calmar_ratio:.2f}')
 	print(f'Sortino Ratio: {sortino_ratio:.2f}')
-
 	print('--'*30)
